@@ -86,12 +86,61 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    "*** YOUR CODE HERE ***"
+    
+    dfsStack = util.Stack()                                            #defining variables
+    startNode = (problem.getStartState(), [])
+    visitedNodes = []
+
+    dfsStack.push(startNode)
+    
+    while not dfsStack.isEmpty():
+        currentNode = dfsStack.pop()
+        nodeLocation = currentNode[0]                                 #traversing to next node and obtaining its location and path
+        currentPath = currentNode[1]
+        
+        if visitedNodes.__contains__(nodeLocation):                 #skips node if it's already visited
+            continue
+        else:                        
+            visitedNodes.append(nodeLocation)                       #marks node as visited
+            
+            if problem.isGoalState(nodeLocation):                   #returns path if node is the goal
+                return currentPath                            
+            
+            successors = problem.getSuccessors(nodeLocation)
+            for currentSuccessor in list(successors):               #adds every successor that hasn't already been visited to the stack
+                if not visitedNodes.__contains__(currentSuccessor):
+                    dfsStack.push((currentSuccessor[0], currentPath + [currentSuccessor[1]]))
+    return []
+
+
     util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
+    bfsQueue = util.Queue()                                            #defining variables
+    startNode = (problem.getStartState(), [])
+    visitedNodes = []
+
+    bfsQueue.push(startNode)
+    
+    while not bfsQueue.isEmpty():
+        currentNode = bfsQueue.pop()
+        nodeLocation = currentNode[0]                                 #traversing to next node and obtaining its location and path
+        currentPath = currentNode[1]
+        
+        if visitedNodes.__contains__(nodeLocation):                 #skips node if it's already visited
+            continue
+        else:                        
+            visitedNodes.append(nodeLocation)                       #marks node as visited
+            
+            if problem.isGoalState(nodeLocation):                   #returns path if node is the goal
+                return currentPath                            
+            
+            successors = problem.getSuccessors(nodeLocation)
+            for currentSuccessor in list(successors):               #adds every successor that hasn't already been visited to the stack
+                if not visitedNodes.__contains__(currentSuccessor):
+                    bfsQueue.push((currentSuccessor[0], currentPath + [currentSuccessor[1]]))
+    return []
     util.raiseNotDefined()
 
 def uniformCostSearch(problem):
