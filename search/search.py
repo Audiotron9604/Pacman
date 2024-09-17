@@ -145,7 +145,45 @@ def breadthFirstSearch(problem):
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
+    
+    pqueue = util.PriorityQueue()
+    currentState = problem.getStartState()
+    node = {}
+    node["predeccessor"] = None                                     #defining variables
+    node["action"] = None                                           #utilizing a dictionary to deal with each states multiple values
+    node["cost"] = 0
+    node["state"] = currentState
+    visitedNodes = []
+
+    pqueue.push(node, node["cost"])
+
+    while not pqueue.isEmpty():
+        node = pqueue.pop()
+        currentCost = node["cost"]                                  #loads next node
+        currentState = node["state"]
+
+        if(visitedNodes.__contains__(currentState)):
+            continue                                                #skips if already visited, if not, marks as visited
+        visitedNodes.append(currentState)
+
+        if problem.isGoalState(currentState):                       #determines if current state is the goal state
+            break
+
+        for currentSuccessor in problem.getSuccessors(currentState):
+            if not visitedNodes.__contains__(currentSuccessor[0]):
+                newNode = {}
+                newNode["state"] = currentSuccessor[0]              #adding successors that haven't already been visited to the priority queue
+                newNode["action"] = currentSuccessor[1]
+                newNode["predeccessor"] = node
+                newNode["cost"] = currentSuccessor[2] + currentCost
+                pqueue.push(newNode, newNode["cost"])
+
+    solution = []
+    while node["action"] != None:
+        solution.insert(0, node["action"])                           #compiling solution into a list
+        node = node["predeccessor"]
+    return solution
+
     util.raiseNotDefined()
 
 def nullHeuristic(state, problem=None):
@@ -157,7 +195,48 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
+    
+    pqueue = util.PriorityQueue()
+    currentState = problem.getStartState()
+    node = {}
+    node["predeccessor"] = None                                     #defining variables
+    node["action"] = None                                           #utilizing a dictionary to deal with each states multiple values
+    node["cost"] = 0
+    node["heuristic"] = heuristic(currentState, problem)
+    node["state"] = currentState
+    visitedNodes = []
+
+    pqueue.push(node, node["cost"] + node["heuristic"])
+
+    while not pqueue.isEmpty():
+        node = pqueue.pop()
+        currentCost = node["cost"]                                  #loads next node
+        currentState = node["state"]
+        currentHeuristic = node["heuristic"]
+
+        if(visitedNodes.__contains__(currentState)):
+            continue                                                #skips if already visited, if not, marks as visited
+        visitedNodes.append(currentState)
+
+        if problem.isGoalState(currentState):                       #determines if current state is the goal state
+            break
+
+        for currentSuccessor in problem.getSuccessors(currentState):
+            if not visitedNodes.__contains__(currentSuccessor[0]):
+                newNode = {}
+                newNode["state"] = currentSuccessor[0]              #adding successors that haven't already been visited to the priority queue
+                newNode["action"] = currentSuccessor[1]
+                newNode["predeccessor"] = node
+                newNode["cost"] = currentSuccessor[2] + currentCost
+                newNode["heuristic"] = heuristic(newNode["state"], problem)
+                pqueue.push(newNode, newNode["cost"] + newNode["heuristic"])
+
+    solution = []
+    while node["action"] != None:
+        solution.insert(0, node["action"])                           #compiling solution into a list
+        node = node["predeccessor"]
+    return solution
+
     util.raiseNotDefined()
 
 
