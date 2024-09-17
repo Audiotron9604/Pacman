@@ -137,7 +137,7 @@ def breadthFirstSearch(problem):
                 return currentPath                            
             
             successors = problem.getSuccessors(nodeLocation)
-            for currentSuccessor in list(successors):               #adds every successor that hasn't already been visited to the stack
+            for currentSuccessor in list(successors):               #adds every successor that hasn't already been visited to the queue
                 if not visitedNodes.__contains__(currentSuccessor):
                     bfsQueue.push((currentSuccessor[0], currentPath + [currentSuccessor[1]]))
     return []
