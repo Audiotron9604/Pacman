@@ -74,7 +74,47 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        #initializing variables
+        count = 0
+        food = newFood.asList()
+        foodLocation = []
+        ghostLocation = []
+
+        #adding each ghost's distance to list
+        for ghost in successorGameState.getGhostPositions():
+            ghostLocation.append(abs(ghost[0] - newPos[0]) + abs(ghost[1] - newPos[1]))
+
+        #calculating action's worthiness based on ghost distance
+        for ghost in successorGameState.getGhostPositions():
+            
+            #incredibly low score if this action will make pacman hit a ghost
+            if ghost == newPos:
+                count -= 1000
+
+            #slightly lowered score if movement places pacman close to a ghost
+            elif (abs(ghost[0] - newPos[0]) + abs(ghost[1] - newPos[1])) <= 3.5:
+                count -= 10
+
+        #adding each food's distance to a list
+        for item in food:
+            foodLocation.append(abs(newPos[0] - item[0]) + abs(newPos[1] - item[1]))
+
+        #calculating action's worthiness based on food distance
+        for currFood in foodLocation:
+            
+            #increases count if food is nearby
+            if currFood <= 4:
+                count += 1
+            
+            #increases slightly if food is medium distance
+            elif  4 < currFood <= 15:
+                count += 0.2
+            
+            #barely increases if the food is far away
+            else:
+                count += 0.1
+
+        return successorGameState.getScore() + count
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -129,7 +169,61 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #def for the maximizer of our minimax
+        def maximizer(gameState, depth):
+            #places all actions in a list
+            actions = gameState.getLegalActions(0)
+            
+            #checks for trivial solutions
+            if len(actions)==0 or gameState.isWin() or gameState.isLose() or depth==self.depth:
+                return(self.evaluationFunction(gameState), None)
+            
+            #starting with -infinity, determines the maximum value that is possible
+            value = -(float("inf"))
+            action = None
+            
+            for currAction in actions:
+                
+                successorValue = minimizer(gameState.generateSuccessor(0, currAction), 1, depth)
+                successorValue = successorValue[0]
+                
+                #stores the current highest value action
+                if(successorValue > value):
+                    value, action = successorValue, currAction
+            
+            #returns the highest value action
+            return(value, action)
+
+        #def for the minimizer of our minimax
+        def minimizer(gameState, agentID, depth):
+            actions = gameState.getLegalActions(agentID)
+            
+            #checking for trivial solution
+            if len(actions) == 0:
+                return(self.evaluationFunction(gameState), None)
+            
+            #starting with infinity, determines the minimum value that is possible
+            value = float("inf")
+            action = None
+
+            for currAction in actions:
+                
+                #if this is the final layer, calculates minimum value, otherwise it traverses deeper
+                if(agentID == gameState.getNumAgents() - 1):
+                    successorValue = maximizer(gameState.generateSuccessor(agentID, currAction), depth + 1)
+                else:
+                    successorValue = minimizer(gameState.generateSuccessor(agentID, currAction), agentID + 1, depth)
+                successorValue = successorValue[0]
+                
+                #stores the current lowest value action
+                if(successorValue < value):
+                    value, action = successorValue, currAction
+            
+            return(value, action)
+        
+        #returning determined value
+        maximizer = maximizer(gameState, 0)[1]
+        return maximizer  
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
