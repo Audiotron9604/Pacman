@@ -250,17 +250,121 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        #def for the maxValue of our expectimax (copied from the maximizer in our minimax function)
+        def maxValue(gameState, depth):
+            #places all actions in a list
+            actions = gameState.getLegalActions(0)
+            
+            #checks for trivial solutions
+            if len(actions)==0 or gameState.isWin() or gameState.isLose() or depth==self.depth:
+                return(self.evaluationFunction(gameState), None)
+            
+            #starting with -infinity, determines the maximum value that is possible
+            value = -(float("inf"))
+            action = None
+            
+            for currAction in actions:
+                
+                successorValue = expValue(gameState.generateSuccessor(0, currAction), 1, depth)
+                successorValue = successorValue[0]
+                
+                #stores the current highest value action
+                if(successorValue > value):
+                    value, action = successorValue, currAction
+            
+            #returns the highest value action
+            return(value, action)
+
+        #def for the expValue of our exectimax (a slightly tweaked copy from the minimizer in our minimax)
+        def expValue(gameState, agentID, depth):
+            #loads all legal actions into list
+            actions = gameState.getLegalActions(agentID)
+            
+            #checking for trivial solution
+            if len(actions) == 0:
+                return(self.evaluationFunction(gameState), None)
+            
+            #starting with 0, determines the average value of the successors
+            value = 0
+            action = None
+
+            for currAction in actions:
+                
+                #traverses through the succesors and obtains their successor values
+                if(agentID == gameState.getNumAgents() - 1):
+                    successorValue = maxValue(gameState.generateSuccessor(agentID, currAction), depth + 1)
+                else:
+                    successorValue = expValue(gameState.generateSuccessor(agentID, currAction), agentID + 1, depth)
+                successorValue = successorValue[0]
+                
+                #converts the total sum of value to the average
+                avg = successorValue / len(actions)
+
+                #adds the average to the value
+                value += avg
+            
+            return(value, action)
+
+        maxValue = maxValue(gameState, 0)[1]
+        return maxValue
 
 def betterEvaluationFunction(currentGameState):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-      DESCRIPTION: <write something here so we know what you did>
+      DESCRIPTION: For this evaluation function I improved it by adding the 'capsule' factor and weighing all
+      the factors in the final answer as fit.
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    #loading our variables
+    position = currentGameState.getPacmanPosition()
+    ghostList = currentGameState.getGhostStates()
+    capsules = currentGameState.getCapsules()
+
+    foodList = currentGameState.getFood()
+    foodList = foodList.asList()
+
+
+    #checking for trivial solutions
+    if currentGameState.isWin():
+        return float("inf")
+    if currentGameState.isLose():
+        return float("-inf")
+
+
+    #iterates through ghosts and adds their distance to their respective lists
+    ghostDistance = []
+    scaredGhostDistance=[]
+    for ghost in ghostList:
+        if ghost.scaredTimer == 0:
+            ghostDistance += [util.manhattanDistance(position, ghost.getPosition())]
+        elif ghost.scaredTimer > 0:
+            scaredGhostDistance += [util.manhattanDistance(position, ghost.getPosition())]
+
+
+    #finds the minimum distance from each ghost list
+    minScaredGhostDistance = -1
+    if len(scaredGhostDistance) > 0:
+        minScaredGhostDistance = min(scaredGhostDistance)
+
+    minGhostDistance = -1
+    if len(ghostDistance) > 0:
+        minGhostDistance = min(ghostDistance)
+
+
+    #calculates the minimum distance to a food
+    foodDistance = []
+    for food in foodList:
+        foodDistance += [util.manhattanDistance(food, position)]
+    minFoodDist = min(foodDistance)
+
+
+    #calculates our value based on all of the factors, weighing certain factors more than others as necessary
+    value = scoreEvaluationFunction(currentGameState)
+    value -= 1.5 * minFoodDist + 2 * (1.0/minGhostDistance) + 2 * minScaredGhostDistance + 20 * len(capsules) + 4 * len(foodList)
+    return value
 
 # Abbreviation
 better = betterEvaluationFunction
